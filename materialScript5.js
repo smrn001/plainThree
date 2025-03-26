@@ -32,13 +32,55 @@ new THREE.RGBELoader().load(
   }
 );
 
-// Create material
-const material = new THREE.MeshPhysicalMaterial({
-  color: 0xce84e8, // Purple base color
-  metalness: 0.5, // Slight metallic effect
-  roughness: 0.1, // Smooth reflections
-  clearcoat: 1.0, // Glossy finish like a car paint
-  clearcoatRoughness: 0.1, // Slight variation in clearcoat reflections
+// Create a combined material using a ShaderMaterial with MeshPhysicalMaterial
+const material = new THREE.ShaderMaterial({
+  uniforms: {
+    baseColor: { value: new THREE.Color(0xce84e8) }, // Purple base
+    highlightColor: { value: new THREE.Color(0xffffff) }, // Shiny highlights
+    fresnelPower: { value: 0.1 }, // Controls falloff
+    roughness: { value: 0.1 }, // Smooth reflections
+    metalness: { value: 0.5 }, // Slight metallic effect
+    clearcoat: { value: 1.0 }, // Glossy finish like a car paint
+    clearcoatRoughness: { value: 0.1 }, // Slight variation in clearcoat reflections
+  },
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+    
+    void main() {
+        vNormal = normalize(normalMatrix * normal);
+        vec4 viewPos = modelViewMatrix * vec4(position, 1.0);
+        vViewDir = normalize(-viewPos.xyz);
+        gl_Position = projectionMatrix * viewPos;
+    }
+  `,
+  fragmentShader: `
+    uniform vec3 baseColor;
+    uniform vec3 highlightColor;
+    uniform float fresnelPower;
+    uniform float roughness;
+    uniform float metalness;
+    uniform float clearcoat;
+    uniform float clearcoatRoughness;
+    
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+    
+    void main() {
+        float fresnel = pow(1.0 - dot(vNormal, vViewDir), fresnelPower);
+        vec3 color = mix(baseColor, highlightColor, fresnel);
+        
+        // Apply roughness and metalness for physical properties
+        float reflection = mix(0.0, 1.0, metalness);
+        vec3 finalColor = mix(color, vec3(1.0), reflection);
+        
+        // Apply clearcoat effect
+        finalColor = mix(finalColor, highlightColor, clearcoat * (1.0 - clearcoatRoughness));
+        
+        gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `,
+  transparent: false,
 });
 
 // GLB Frame Animation Logic (no change here)
@@ -59,10 +101,10 @@ function loadFrames() {
       frames[i] = frame;
       frames[i].visible = false; // Hide all initially
 
-      // Apply the reflective material to the mesh
+      // Apply the combined material to the mesh
       frame.traverse((child) => {
         if (child.isMesh) {
-          child.material = material; // Set reflective material
+          child.material = material; // Set custom material
         }
       });
 
