@@ -28,7 +28,7 @@ new THREE.RGBELoader().load(
   (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     scene.environment = texture;
-    scene.background = texture;
+    // scene.background = texture;
   }
 );
 
