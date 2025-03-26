@@ -28,11 +28,56 @@ new THREE.RGBELoader().load(
   (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     scene.environment = texture;
-    scene.background = texture;
+    // scene.background = texture;
   }
 );
 
-// GLB Frame Animation Logic
+// Create custom chrome shader material with purple shade
+const material = new THREE.ShaderMaterial({
+  uniforms: {
+    metallic: { value: 1.0 }, // Full metallic for chrome effect
+    roughness: { value: 0.2 }, // Limited roughness for smooth chrome
+    environmentMap: { value: scene.environment }, // Add environment map for reflections
+    purpleShade: { value: new THREE.Color(0xd480fb) }, // Purple color for chrome
+  },
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vec4 viewPos = modelViewMatrix * vec4(position, 1.0);
+      vViewDir = normalize(-viewPos.xyz);
+      gl_Position = projectionMatrix * viewPos;
+    }
+  `,
+  fragmentShader: `
+    uniform float metallic;
+    uniform float roughness;
+    uniform samplerCube environmentMap; // Environment map for reflections
+    uniform vec3 purpleShade; // Purple color for tinting
+
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+
+    void main() {
+      // Fresnel effect: how much reflection at glancing angles
+      float fresnelFactor = pow(1.0 - dot(vNormal, vViewDir), 5.0);
+      
+      // Reflection effect using the environment map
+      vec3 reflection = texture(environmentMap, vViewDir).xyz;
+
+      // Mix purple tint with reflection based on the Fresnel factor
+      vec3 mixedColor = mix(reflection, purpleShade, fresnelFactor);
+
+      // Final color: smooth transition between reflection and purple shade
+      gl_FragColor = vec4(mixedColor, 1.0);
+    }
+  `,
+  transparent: false,
+});
+
+// GLB Frame Animation Logic (no change here)
 const loader = new THREE.GLTFLoader();
 let frames = [];
 let currentFrameIndex = 0;
@@ -46,9 +91,18 @@ function loadFrames() {
     const fileName = `assets/glb/Mball_001_frame_${i}.glb`;
 
     loader.load(fileName, (gltf) => {
-      frames[i] = gltf.scene;
+      const frame = gltf.scene;
+      frames[i] = frame;
       frames[i].visible = false; // Hide all initially
-      scene.add(frames[i]);
+
+      // Apply the custom shader material to the mesh
+      frame.traverse((child) => {
+        if (child.isMesh) {
+          child.material = material; // Set custom shader material
+        }
+      });
+
+      scene.add(frame);
 
       loadedCount++;
       if (loadedCount === 61) {

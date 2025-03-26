@@ -32,7 +32,16 @@ new THREE.RGBELoader().load(
   }
 );
 
-// GLB Frame Animation Logic
+// Create material
+const material = new THREE.MeshPhysicalMaterial({
+  color: 0xce84e8, // Purple base color
+  metalness: 0.5, // Slight metallic effect
+  roughness: 0.2, // Smooth reflections
+  clearcoat: 1.0, // Glossy finish like a car paint
+  clearcoatRoughness: 0.1, // Slight variation in clearcoat reflections
+});
+
+// GLB Frame Animation Logic (no change here)
 const loader = new THREE.GLTFLoader();
 let frames = [];
 let currentFrameIndex = 0;
@@ -46,9 +55,18 @@ function loadFrames() {
     const fileName = `assets/glb/Mball_001_frame_${i}.glb`;
 
     loader.load(fileName, (gltf) => {
-      frames[i] = gltf.scene;
+      const frame = gltf.scene;
+      frames[i] = frame;
       frames[i].visible = false; // Hide all initially
-      scene.add(frames[i]);
+
+      // Apply the reflective material to the mesh
+      frame.traverse((child) => {
+        if (child.isMesh) {
+          child.material = material; // Set reflective material
+        }
+      });
+
+      scene.add(frame);
 
       loadedCount++;
       if (loadedCount === 61) {
@@ -88,7 +106,7 @@ function startAnimation() {
 }
 
 // Lighting
-const light = new THREE.DirectionalLight(0xffffff, 0.5);
+const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(0, 0, 0);
 scene.add(light);
 

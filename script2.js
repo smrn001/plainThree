@@ -28,7 +28,8 @@ new THREE.RGBELoader().load(
   (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     scene.environment = texture;
-    scene.background = texture;
+    // scene.background = texture;
+    
   }
 );
 
@@ -36,7 +37,8 @@ new THREE.RGBELoader().load(
 const loader = new THREE.GLTFLoader();
 let frames = [];
 let currentFrameIndex = 0;
-let forward = true; // Track animation direction
+let forward = true; // Direction of loop (0 → 20 → 0)
+let transitioning = false; // Track transition state
 
 // Function to load all frames
 function loadFrames() {
@@ -53,38 +55,67 @@ function loadFrames() {
       loadedCount++;
       if (loadedCount === 61) {
         frames[0].visible = true; // Show first frame when all are loaded
-        startAnimation();
+        startLoopAnimation();
       }
     });
   }
 }
 
-// Function to switch frames
-function switchFrame() {
-  if (frames.length < 61) return; // Ensure all frames are loaded
+// Function to switch frames in a loop from 0 → 20 → 0
+function loopAnimation() {
+  if (transitioning || frames.length < 61) return;
 
   frames[currentFrameIndex].visible = false; // Hide current frame
 
   if (forward) {
     currentFrameIndex++;
-    if (currentFrameIndex > 60) {
-      currentFrameIndex = 59;
-      forward = false; // Start going backward
-    }
+    if (currentFrameIndex >= 20) forward = false;
   } else {
     currentFrameIndex--;
-    if (currentFrameIndex < 0) {
-      currentFrameIndex = 1;
-      forward = true; // Start going forward again
-    }
+    if (currentFrameIndex <= 0) forward = true;
   }
 
   frames[currentFrameIndex].visible = true; // Show next frame
 }
 
-// Start animation after all models are loaded
-function startAnimation() {
-  setInterval(switchFrame, 41.67); // Change frame every 100ms (adjust speed)
+// Function to handle click transition (current → 20 → 40 → 60)
+function onClickTransition() {
+  if (transitioning || frames.length < 61) return;
+
+  transitioning = true;
+  let targetFrames = [20, 40, 60]; // Steps to transition through
+  let stepIndex = 0;
+
+  function transitionStep() {
+    if (stepIndex >= targetFrames.length) {
+      transitioning = false;
+      startLoopAnimation();
+      return;
+    }
+
+    let targetFrame = targetFrames[stepIndex];
+    let direction = currentFrameIndex < targetFrame ? 1 : -1;
+
+    let interval = setInterval(() => {
+      frames[currentFrameIndex].visible = false;
+      currentFrameIndex += direction;
+
+      frames[currentFrameIndex].visible = true;
+
+      if (currentFrameIndex === targetFrame) {
+        clearInterval(interval);
+        stepIndex++;
+        transitionStep(); // Move to next target
+      }
+    }, 40.16); // Adjust speed
+  }
+
+  transitionStep();
+}
+
+// Start loop animation after all models are loaded
+function startLoopAnimation() {
+  setInterval(loopAnimation, 50); // Adjust speed as needed
 }
 
 // Lighting
@@ -109,3 +140,6 @@ window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
 });
+
+// Add click event
+canvas.addEventListener("click", onClickTransition);

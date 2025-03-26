@@ -32,7 +32,17 @@ new THREE.RGBELoader().load(
   }
 );
 
-// GLB Frame Animation Logic
+// Create a simple reflective material with roughness 0.2
+const material = new THREE.MeshStandardMaterial({
+  metalness: 0.7, // Fully metallic for chrome-like effect
+  roughness: 0.1, // Smooth reflection
+  envMap: scene.environment, // Use the environment map for reflection
+  envMapIntensity: 1.0, // Control the intensity of the environment map reflection
+  color: 0xd480fb, // White color for chrome
+//   reflectivity: 0.01, // Full reflectivity for chrome effect
+});
+
+// GLB Frame Animation Logic (no change here)
 const loader = new THREE.GLTFLoader();
 let frames = [];
 let currentFrameIndex = 0;
@@ -46,9 +56,18 @@ function loadFrames() {
     const fileName = `assets/glb/Mball_001_frame_${i}.glb`;
 
     loader.load(fileName, (gltf) => {
-      frames[i] = gltf.scene;
+      const frame = gltf.scene;
+      frames[i] = frame;
       frames[i].visible = false; // Hide all initially
-      scene.add(frames[i]);
+
+      // Apply the reflective material to the mesh
+      frame.traverse((child) => {
+        if (child.isMesh) {
+          child.material = material; // Set reflective material
+        }
+      });
+
+      scene.add(frame);
 
       loadedCount++;
       if (loadedCount === 61) {
@@ -88,7 +107,7 @@ function startAnimation() {
 }
 
 // Lighting
-const light = new THREE.DirectionalLight(0xffffff, 0.5);
+const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(0, 0, 0);
 scene.add(light);
 
