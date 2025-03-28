@@ -42,7 +42,7 @@ const material = new THREE.MeshPhysicalMaterial({
 
 // Load a single GLB file
 const loader = new THREE.GLTFLoader();
-loader.load("export/Final Animation1.glb", (gltf) => {
+loader.load("export/Final Animation2.glb", (gltf) => {
   const model = gltf.scene;
   model.traverse((child) => {
     if (child.isMesh) {
