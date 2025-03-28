@@ -28,7 +28,6 @@ new THREE.RGBELoader().load(
   (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
     scene.environment = texture;
-    // scene.background = texture;
   }
 );
 
@@ -41,69 +40,17 @@ const material = new THREE.MeshPhysicalMaterial({
   clearcoatRoughness: 0.1, // Slight variation in clearcoat reflections
 });
 
-// GLB Frame Animation Logic (no change here)
+// Load a single GLB file
 const loader = new THREE.GLTFLoader();
-let frames = [];
-let currentFrameIndex = 0;
-let forward = true; // Track animation direction
-
-// Function to load all frames
-function loadFrames() {
-  let loadedCount = 0;
-
-  for (let i = 0; i <= 64; i++) {
-    const fileName = `assets/glb/Mball_001_frame_${i}.glb`;
-
-    loader.load(fileName, (gltf) => {
-      const frame = gltf.scene;
-      frames[i] = frame;
-      frames[i].visible = false; // Hide all initially
-
-      // Apply the reflective material to the mesh
-      frame.traverse((child) => {
-        if (child.isMesh) {
-          child.material = material; // Set reflective material
-        }
-      });
-
-      scene.add(frame);
-
-      loadedCount++;
-      if (loadedCount === 65) {
-        frames[0].visible = true; // Show first frame when all are loaded
-        startAnimation();
-      }
-    });
-  }
-}
-
-// Function to switch frames
-function switchFrame() {
-  if (frames.length < 65) return; // Ensure all frames are loaded
-
-  frames[currentFrameIndex].visible = false; // Hide current frame
-
-  if (forward) {
-    currentFrameIndex++;
-    if (currentFrameIndex > 64) {
-      currentFrameIndex = 63;
-      forward = false; // Start going backward
+loader.load("export/Final Animation1.glb", (gltf) => {
+  const model = gltf.scene;
+  model.traverse((child) => {
+    if (child.isMesh) {
+      child.material = material; // Apply the reflective material
     }
-  } else {
-    currentFrameIndex--;
-    if (currentFrameIndex < 0) {
-      currentFrameIndex = 1;
-      forward = true; // Start going forward again
-    }
-  }
-
-  frames[currentFrameIndex].visible = true; // Show next frame
-}
-
-// Start animation after all models are loaded
-function startAnimation() {
-  setInterval(switchFrame, 41.67); // Change frame every 100ms (adjust speed)
-}
+  });
+  scene.add(model);
+});
 
 // Animation loop
 function animate() {
@@ -112,9 +59,6 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
-
-// Load all frames
-loadFrames();
 
 // Handle window resizing
 window.addEventListener("resize", () => {
