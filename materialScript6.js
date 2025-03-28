@@ -51,8 +51,8 @@ let forward = true; // Track animation direction
 function loadFrames() {
   let loadedCount = 0;
 
-  for (let i = 0; i <= 64; i++) {
-    const fileName = `assets/glb/Mball_001_frame_${i}.glb`;
+  for (let i = 0; i <=60; i++) {
+    const fileName = `assets/glb/Mball.001_frame_${i}.glb`;
 
     loader.load(fileName, (gltf) => {
       const frame = gltf.scene;
@@ -69,7 +69,7 @@ function loadFrames() {
       scene.add(frame);
 
       loadedCount++;
-      if (loadedCount === 65) {
+      if (loadedCount === 61) {
         frames[0].visible = true; // Show first frame when all are loaded
         startAnimation();
       }
@@ -79,14 +79,14 @@ function loadFrames() {
 
 // Function to switch frames
 function switchFrame() {
-  if (frames.length < 65) return; // Ensure all frames are loaded
+  if (frames.length < 61) return; // Ensure all frames are loaded
 
   frames[currentFrameIndex].visible = false; // Hide current frame
 
   if (forward) {
     currentFrameIndex++;
-    if (currentFrameIndex > 64) {
-      currentFrameIndex = 63;
+    if (currentFrameIndex > 60) {
+      currentFrameIndex = 59;
       forward = false; // Start going backward
     }
   } else {
