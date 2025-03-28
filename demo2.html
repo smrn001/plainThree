@@ -3,27 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Three.js GLB Scene</title>
+    <title>Document</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/RGBELoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
     <style>
-      body {
+      * {
         margin: 0;
-        overflow: hidden;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
         display: flex;
-        flex-direction: column;
+        justify-content: center;
         align-items: center;
+        height: 100vh;
+        width: 100vw;
+        background-color: #ffffff;
+      }
+      #leftdiv {
+        background-color: #c2a1e8;
+        border-radius: 24px;
+      }
+      #rightdiv {
+        background-color: #ffffff;
+      }
+      .subsection {
+        width: 50vw;
+        height: 100%;
       }
       .canvas-container {
-        width: 300px;
-        height: 1000px;
+        width: 50vw;
+        height: 100%;
         position: absolute;
-        /* top: 20px; 
-        left: 20px; */
         overflow: hidden;
-        background-color: #000;
+        /* background-color: #000; */
       }
       canvas.webgl {
         display: block;
@@ -33,9 +48,15 @@
     </style>
   </head>
   <body>
-    <h1>Three.js Scene</h1>
-    <div class="canvas-container">
-      <canvas class="webgl"></canvas>
+    <div style="display: flex; width: 100vw; height: 100vh; padding: 24px">
+      <!-- left div  -->
+      <div class="subsection" id="leftdiv">
+        <div class="canvas-container">
+          <canvas class="webgl"></canvas>
+        </div>
+      </div>
+      <!-- right div  -->
+      <div></div>
     </div>
     <script src="demo.js"></script>
   </body>
