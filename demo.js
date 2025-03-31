@@ -26,7 +26,7 @@ camera.aspect = container.clientWidth / container.clientHeight;
 camera.updateProjectionMatrix();
 // Enable shadows
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+renderer.toneMappingExposure = 0.5;
 renderer.outputEncoding = THREE.sRGBEncoding;
 
 // Orbit controls
@@ -36,20 +36,37 @@ controls.enableZoom = false; // Disable zooming
 controls.enablePan = false;
 
 // Load HDRI
-new THREE.RGBELoader().load(
-  "assets/hdr/blenderkit-studio-hdri-1-light_2K_5ce86ce7-0650-4e09-86fd-f9aef19a68e9.hdr",
+const hdrLoader = new THREE.RGBELoader();
+hdrLoader.load(
+  'assets/hdr/blenderkit-studio-hdri-1-light_2K_5ce86ce7-0650-4e09-86fd-f9aef19a68e9.hdr', // HDRI file path
   (texture) => {
-    texture.mapping = THREE.EquirectangularReflectionMapping;
-    scene.environment = texture;
-    // scene.background = texture;
+    // Use PMREMGenerator for better performance with dynamic lighting
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+    scene.environment = envMap; // Set as environment for reflections
+    
+    // Optional: Set background to null (to hide HDRI background)
+    scene.background = null; // Hides the HDRI display
+
+    // Dispose of the texture after creating the environment map
+    texture.dispose();
+    pmremGenerator.dispose();
   }
-);
+);22
+
+// Dynamic lighting (using HDRI)
+const ambientLight = new THREE.AmbientLight(0x00000, 0.2);  // Soft ambient light from HDRI
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1); // Strong directional light from HDRI
+directionalLight.position.set(5, 5, 5);
+scene.add(directionalLight);
 
 // Create material
 const material = new THREE.MeshPhysicalMaterial({
-  color: 0xce84e8, // Purple base color
-  metalness: 0.5, // Slight metallic effect
-  roughness: 0.1, // Smooth reflections
+  color: 0x450E83, // Purple base color
+  metalness: 1, // Slight metallic effect
+  roughness: 0.5, // Smooth reflections
   clearcoat: 1.0, // Glossy finish like a car paint
   clearcoatRoughness: 0.1, // Slight variation in clearcoat reflections
 });
