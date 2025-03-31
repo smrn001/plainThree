@@ -82,7 +82,7 @@ function loadFrames() {
   let loadedCount = 0;
 
   for (let i = 0; i <= 64; i++) {
-    const fileName = `assets/glb/Mball_001_frame_${i}.glb`;
+    const fileName = `assets/glb/Mball.001_frame_${i}.glb`;
 
     loader.load(fileName, (gltf) => {
       const frame = gltf.scene;
