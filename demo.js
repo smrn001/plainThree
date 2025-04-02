@@ -89,8 +89,8 @@ function loadFrames() {
       frames[i] = frame;
       frames[i].visible = false; // Hide all initially
 
-      frame.scale.set(0.6, 0.6, 0.6); // Adjust this value if needed
-      frame.position.y += 0.7; // Move object slightly upward
+      frame.scale.set(0.5, 0.5, 0.5); // Adjust this value if needed
+      frame.position.y += 1.6; // Move object slightly upward
 
       // Apply the reflective material to the mesh
       frame.traverse((child) => {
